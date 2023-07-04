@@ -1,0 +1,55 @@
+select * from netflix_project.netflix;
+
+#What is the average age depending on the device used?
+
+SELECT AVG(Age), Device
+FROM netflix_project.netflix
+GROUP BY Device;
+
+# Distribution of userr grouped by Country and Gender. 
+
+SELECT N1.country AS country, N2.Gender AS gender, COUNT(*) AS gender_count
+FROM netflix_project.netflix N1
+JOIN netflix_project.netflix N2 ON N1.User_ID = N2.User_ID
+GROUP BY N1.country, N2.Gender
+ORDER BY N1.country, N2.Gender;
+
+# How many subscriptions are there of each type?
+
+SELECT Subs_Type, COUNT(*) 
+FROM netflix_project.netflix
+GROUP BY 1
+ORDER BY 2 DESC;
+
+#how many people joined each quarter regardless of the year
+
+SELECT CASE
+  WHEN MONTH(Join_Date) BETWEEN 1 AND 3 THEN 'Q1'
+  WHEN MONTH(Join_Date) BETWEEN 4 AND 6 THEN 'Q2'
+  WHEN MONTH(Join_Date) BETWEEN 7 AND 9 THEN 'Q3'
+  WHEN MONTH(Join_Date) BETWEEN 10 AND 12 THEN 'Q4'
+  END AS Quarter,
+  COUNT(*)
+FROM netflix_project.netflix
+GROUP BY 1
+ORDER BY 1;
+
+# month each year with most subscriptions. 
+
+WITH month_counts AS (
+  SELECT
+    YEAR(Join_Date) AS Year,
+    MONTH(Join_Date) AS Month,
+    COUNT(*) AS Subscribers,
+    ROW_NUMBER() OVER (PARTITION BY YEAR(Join_Date) ORDER BY COUNT(*) DESC) AS RowNum
+  FROM netflix_project.netflix
+  GROUP BY YEAR(Join_Date), MONTH(Join_Date)
+)
+SELECT
+  Year,
+  Month,
+  Subscribers
+FROM month_counts
+WHERE RowNum = 1
+ORDER BY Year
+LIMIT 3;
